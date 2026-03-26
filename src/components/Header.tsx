@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { Compass, Github, MoonStar, Search, Sparkles } from 'lucide-react'
+import { Compass, Github, MoonStar, Play, Search } from 'lucide-react'
 import { startTransition, useEffect, useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 
@@ -38,14 +38,14 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-xl">
-      <nav className="page-wrap header-shell py-4">
+      <nav className="page-wrap header-shell py-3 md:py-4">
         <Link
           to="/"
           className="brand-mark no-underline"
           aria-label="Velora home"
         >
           <span className="brand-mark__glyph">
-            <Sparkles size={15} strokeWidth={2.1} />
+            <Play size={14} strokeWidth={2.4} fill="currentColor" />
           </span>
           <span>
             <strong>Velora</strong>
@@ -83,7 +83,7 @@ export default function Header() {
           </Link>
         </div>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+        <div className="header-actions flex items-center gap-2 lg:ml-0">
           <a
             href="https://github.com"
             target="_blank"
