@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { Github, HeartHandshake } from 'lucide-react'
 
+const REPO_URL = 'https://github.com/Ratul345/Velora---Premium-video-discovery'
+
 export default function Footer() {
   const year = new Date().getFullYear()
 
@@ -20,7 +22,7 @@ export default function Footer() {
             About Velora
           </Link>
           <a
-            href="https://github.com"
+            href={REPO_URL}
             target="_blank"
             rel="noreferrer"
             className="footer-link"

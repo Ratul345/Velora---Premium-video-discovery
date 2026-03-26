@@ -7,6 +7,8 @@ type HeaderSearch = {
   q?: string
 }
 
+const REPO_URL = 'https://github.com/Ratul345/Velora---Premium-video-discovery'
+
 export default function Header() {
   const navigate = useNavigate()
   const location = useRouterState({
@@ -85,7 +87,7 @@ export default function Header() {
 
         <div className="header-actions flex items-center gap-2 lg:ml-0">
           <a
-            href="https://github.com"
+            href={REPO_URL}
             target="_blank"
             rel="noreferrer"
             className="icon-link"

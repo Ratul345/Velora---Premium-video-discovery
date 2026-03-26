@@ -24,23 +24,31 @@ export const navigationGroups = [
   },
 ]
 
-export const designNotes = [
-  {
-    title: 'More signal, less noise',
-    body: 'The layout gives every video more breathing room so your eyes lock onto what matters faster.',
-  },
-  {
-    title: 'Smarter first impression',
-    body: 'The feed feels selected, not dumped in your face. It should feel more intentional than the usual chaos.',
-  },
-  {
-    title: 'Premium without copying',
-    body: 'The surface feels refined and familiar, but the identity stays separate from the platforms it takes inspiration from.',
-  },
+export const onboardingTopics = [
+  'Technology',
+  'Programming',
+  'React',
+  'AI',
+  'Startups',
+  'Design',
+  'Mobile Repair',
+  'Business',
+  'Science',
+  'Documentary',
+  'Music',
+  'Gaming',
+  'Education',
+  'Productivity',
+  'Finance',
+  'Podcasts',
 ]
 
-export const discoveryPromises = [
-  'Spot stronger titles, cleaner thumbnails, and fresher momentum at a glance.',
-  'Push viewers toward quality and relevance instead of endless clutter.',
-  'Make discovery feel guided, not addictive in a cheap way.',
-]
+export type UserPreferences = {
+  likes: string[]
+  dislikes: string[]
+}
+
+export const defaultPreferences: UserPreferences = {
+  likes: [],
+  dislikes: [],
+}

@@ -20,6 +20,8 @@
   --accent: #b9e4ff;
   --accent-strong: #7bc7ff;
   --accent-warm: #f5d8ae;
+  --danger-soft: rgba(255, 142, 142, 0.16);
+  --danger-line: rgba(255, 142, 142, 0.3);
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
   --header-bg: rgba(7, 11, 18, 0.74);
 }
@@ -38,6 +40,8 @@
   --accent: #163a63;
   --accent-strong: #2563a6;
   --accent-warm: #7b4f14;
+  --danger-soft: rgba(220, 38, 38, 0.08);
+  --danger-line: rgba(220, 38, 38, 0.22);
   --shadow: 0 28px 80px rgba(72, 99, 134, 0.18);
   --header-bg: rgba(238, 243, 249, 0.74);
 }
@@ -112,7 +116,9 @@ input,
 .about-card,
 .related-video-card,
 .watch-action-button,
-.watch-comment-card {
+.watch-comment-card,
+.topic-action,
+.primary-cta-button {
   transition:
     transform 180ms ease,
     border-color 180ms ease,
@@ -186,7 +192,8 @@ input,
 .sidebar-link,
 .filter-chip,
 .theme-button,
-.watch-action-button {
+.watch-action-button,
+.topic-action {
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--text-soft);
@@ -210,7 +217,9 @@ input,
 .theme-button:hover,
 .watch-action-button:hover,
 .related-video-card:hover,
-.watch-comment-card:hover {
+.watch-comment-card:hover,
+.topic-action:hover,
+.primary-cta-button:hover {
   color: var(--text);
   border-color: var(--line-strong);
   background: color-mix(in oklab, var(--panel) 84%, white 6%);
@@ -263,7 +272,9 @@ input,
 .message-card,
 .about-card,
 .watch-description,
-.watch-comment-card {
+.watch-comment-card,
+.onboarding-card,
+.topic-card {
   border: 1px solid var(--line);
   background: linear-gradient(180deg, var(--panel-strong), var(--panel));
   box-shadow: var(--shadow);
@@ -301,7 +312,11 @@ input,
 .about-grid,
 .content-shell,
 .watch-layout,
-.watch-meta-bar {
+.watch-meta-bar,
+.onboarding-grid,
+.onboarding-header,
+.onboarding-footer,
+.preference-bar {
   display: grid;
 }
 
@@ -310,32 +325,42 @@ input,
   gap: 0.7rem;
 }
 
-.chip-row--toolbar {
-  margin-top: 0;
-}
-
 .filter-chip {
   padding: 0.8rem 0.95rem;
   border-radius: 999px;
   cursor: pointer;
 }
 
-.filter-chip.is-active {
+.filter-chip.is-active,
+.primary-cta-button {
   color: #06111c;
   border-color: transparent;
   background: linear-gradient(135deg, var(--accent), #ffffff 88%);
+}
+
+.primary-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.88rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .section-heading h2,
 .about-card h2,
 .message-card h3,
 .watch-heading h1,
-.related-video-copy h3 {
+.related-video-copy h3,
+.onboarding-header h2 {
   margin: 0;
 }
 
 .about-card p,
-.message-card p {
+.message-card p,
+.onboarding-header p,
+.preference-empty {
   color: var(--text-soft);
   line-height: 1.7;
 }
@@ -408,6 +433,38 @@ input,
   margin-bottom: 1rem;
 }
 
+.feed-toolbar--stacked {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.preference-bar {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.preference-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.preference-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+}
+
+.preference-chip--like {
+  color: var(--text);
+}
+
 .video-grid,
 .about-grid,
 .related-video-list,
@@ -431,7 +488,8 @@ input,
 }
 
 .video-card:hover,
-.about-card:hover {
+.about-card:hover,
+.topic-card:hover {
   transform: translateY(-3px);
   border-color: var(--line-strong);
 }
@@ -569,7 +627,8 @@ input,
   gap: 0.7rem;
 }
 
-.watch-action-button {
+.watch-action-button,
+.topic-action {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -617,6 +676,92 @@ input,
 
 .watch-comment-text {
   line-height: 1.7;
+}
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 8, 14, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.onboarding-card {
+  width: min(980px, 100%);
+  max-height: min(88vh, 920px);
+  overflow: auto;
+  padding: 1.2rem;
+  border-radius: 1.8rem;
+}
+
+.onboarding-header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.onboarding-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.topic-card {
+  padding: 1rem;
+  border-radius: 1.25rem;
+}
+
+.topic-card p {
+  margin: 0;
+  font-weight: 700;
+}
+
+.topic-card__actions {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.topic-action {
+  padding: 0.62rem 0.82rem;
+  font-size: 0.88rem;
+}
+
+.topic-action.active.is-like {
+  color: #06111c;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent), #ffffff 88%);
+}
+
+.topic-action.active.is-dislike {
+  color: #ffd8d8;
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+}
+
+.onboarding-footer {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.onboarding-summary,
+.onboarding-footer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.onboarding-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-soft);
 }
 
 .skeleton-card {
@@ -678,7 +823,8 @@ input,
 }
 
 @media (max-width: 1200px) {
-  .video-grid {
+  .video-grid,
+  .onboarding-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -762,7 +908,9 @@ input,
   .watch-description,
   .watch-comment-card,
   .video-card,
-  .related-video-card {
+  .related-video-card,
+  .onboarding-card,
+  .topic-card {
     border-radius: 1.25rem;
   }
 
@@ -789,8 +937,17 @@ input,
     font-size: 0.86rem;
   }
 
-  .feed-toolbar {
+  .feed-toolbar,
+  .feed-toolbar--stacked {
     margin-bottom: 0.8rem;
+    gap: 0.75rem;
+  }
+
+  .preference-bar,
+  .onboarding-footer,
+  .onboarding-header,
+  .topic-card__actions {
+    grid-template-columns: 1fr;
   }
 
   .chip-row {
@@ -814,7 +971,8 @@ input,
   .video-grid,
   .about-grid,
   .watch-meta-bar,
-  .watch-comment-card {
+  .watch-comment-card,
+  .onboarding-grid {
     grid-template-columns: 1fr;
   }
 
@@ -843,5 +1001,9 @@ input,
 
   .related-video-card {
     grid-template-columns: 1fr;
+  }
+
+  .onboarding-card {
+    padding: 1rem;
   }
 }

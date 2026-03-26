@@ -2,6 +2,11 @@ const API_ROOT = 'https://www.googleapis.com/youtube/v3'
 const REGION = 'BD'
 const MAX_RESULTS = 12
 
+type DiscoverOptions = {
+  likes?: string[]
+  dislikes?: string[]
+}
+
 type YoutubeVideoItem = {
   id: string
   snippet: {
@@ -109,10 +114,23 @@ export type WatchPageData = {
   comments: WatchComment[]
 }
 
-export async function fetchYoutubeDiscoverFeed(apiKey: string): Promise<FeedVideo[]> {
+export async function fetchYoutubeDiscoverFeed(
+  apiKey: string,
+  options: DiscoverOptions = {},
+): Promise<FeedVideo[]> {
   const normalizedKey = ensureApiKey(apiKey)
-  const videos = await fetchPopularVideos(normalizedKey)
-  return mapVideosWithChannels(videos, normalizedKey)
+  const likes = normalizeTopics(options.likes)
+  const dislikes = normalizeTopics(options.dislikes)
+
+  const videos =
+    likes.length > 0
+      ? await fetchInterestVideos(normalizedKey, likes)
+      : await fetchPopularVideos(normalizedKey)
+
+  const filteredVideos = filterVideosByDislikes(videos, dislikes)
+  const limitedVideos = filteredVideos.slice(0, MAX_RESULTS)
+
+  return mapVideosWithChannels(limitedVideos, normalizedKey)
 }
 
 export async function fetchYoutubeWatchData(
@@ -175,6 +193,10 @@ function ensureApiKey(apiKey: string) {
   return normalizedKey
 }
 
+function normalizeTopics(values?: string[]) {
+  return [...new Set((values ?? []).map((value) => value.trim()).filter(Boolean))]
+}
+
 async function fetchPopularVideos(apiKey: string) {
   const videosUrl = new URL(`${API_ROOT}/videos`)
   videosUrl.searchParams.set('part', 'snippet,contentDetails,statistics')
@@ -193,6 +215,92 @@ async function fetchPopularVideos(apiKey: string) {
   return payload.items ?? []
 }
 
+async function fetchInterestVideos(apiKey: string, likes: string[]) {
+  const selectedTopics = likes.slice(0, 3)
+  const searchResults = await Promise.all(
+    selectedTopics.map((topic) => searchVideosByTopic(apiKey, topic)),
+  )
+
+  const videoIds = [...new Set(searchResults.flat())]
+
+  if (videoIds.length === 0) {
+    return fetchPopularVideos(apiKey)
+  }
+
+  return fetchVideosByIds(apiKey, videoIds.slice(0, 18))
+}
+
+async function searchVideosByTopic(apiKey: string, topic: string) {
+  const searchUrl = new URL(`${API_ROOT}/search`)
+  searchUrl.searchParams.set('part', 'snippet')
+  searchUrl.searchParams.set('type', 'video')
+  searchUrl.searchParams.set('maxResults', '8')
+  searchUrl.searchParams.set('order', 'relevance')
+  searchUrl.searchParams.set('q', topic)
+  searchUrl.searchParams.set('regionCode', REGION)
+  searchUrl.searchParams.set('safeSearch', 'moderate')
+  searchUrl.searchParams.set('key', apiKey)
+
+  const response = await fetch(searchUrl.toString())
+
+  if (!response.ok) {
+    return []
+  }
+
+  const payload = (await response.json()) as YoutubeListResponse<YoutubeSearchItem>
+  return (payload.items ?? [])
+    .map((item) => item.id?.videoId)
+    .filter((videoId): videoId is string => Boolean(videoId))
+}
+
+async function fetchVideosByIds(apiKey: string, videoIds: string[]) {
+  const videosUrl = new URL(`${API_ROOT}/videos`)
+  videosUrl.searchParams.set('part', 'snippet,contentDetails,statistics')
+  videosUrl.searchParams.set('id', videoIds.join(','))
+  videosUrl.searchParams.set('key', apiKey)
+
+  const response = await fetch(videosUrl.toString())
+
+  if (!response.ok) {
+    return []
+  }
+
+  const payload = (await response.json()) as YoutubeListResponse<YoutubeVideoItem>
+  return payload.items ?? []
+}
+
+function filterVideosByDislikes(videos: YoutubeVideoItem[], dislikes: string[]) {
+  if (dislikes.length === 0) {
+    return videos
+  }
+
+  return videos.filter((video) => {
+    const haystack = [
+      video.snippet.title,
+      video.snippet.channelTitle,
+      video.snippet.description ?? '',
+    ].join(' ')
+
+    return dislikes.every((topic) => !matchesBlockedTopic(haystack, topic))
+  })
+}
+
+function matchesBlockedTopic(haystack: string, topic: string) {
+  const normalizedTopic = topic.trim()
+
+  if (!normalizedTopic) {
+    return false
+  }
+
+  const escapedTopic = escapeRegExp(normalizedTopic)
+  const pattern = new RegExp(`\\b${escapedTopic}\\b`, 'i')
+  return pattern.test(haystack)
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')
+}
+
 async function fetchRelatedVideos(apiKey: string, videoId: string) {
   const relatedUrl = new URL(`${API_ROOT}/search`)
   relatedUrl.searchParams.set('part', 'snippet')
@@ -208,24 +316,11 @@ async function fetchRelatedVideos(apiKey: string, videoId: string) {
   }
 
   const payload = (await response.json()) as YoutubeListResponse<YoutubeSearchItem>
+  const ids = (payload.items ?? [])
+    .map((item) => item.id?.videoId)
+    .filter((item): item is string => Boolean(item))
 
-  return (payload.items ?? []).flatMap((item) => {
-    if (!item.id?.videoId) {
-      return []
-    }
-
-    return [
-      {
-        id: item.id.videoId,
-        snippet: {
-          ...item.snippet,
-          description: '',
-        },
-        statistics: {},
-        contentDetails: {},
-      } satisfies YoutubeVideoItem,
-    ]
-  })
+  return fetchVideosByIds(apiKey, ids)
 }
 
 async function fetchComments(apiKey: string, videoId: string): Promise<WatchComment[]> {
@@ -399,3 +494,4 @@ function formatRelativeDate(value: string) {
   const years = Math.floor(diffDays / 365)
   return `${years} year${years === 1 ? '' : 's'} ago`
 }
+
